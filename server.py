@@ -38,6 +38,28 @@ CORS(app, resources={
 # Initialize JWT
 jwt = JWTManager(app)
 
+# JWT error handlers
+@jwt.expired_token_loader
+def expired_token_callback(jwt_header, jwt_payload):
+    return jsonify({
+        'error': 'Token has expired',
+        'message': 'Please login again'
+    }), 401
+
+@jwt.invalid_token_loader
+def invalid_token_callback(error):
+    return jsonify({
+        'error': 'Invalid token',
+        'message': 'Please login again'
+    }), 422
+
+@jwt.unauthorized_loader
+def missing_token_callback(error):
+    return jsonify({
+        'error': 'Authorization required',
+        'message': 'Please login to access this resource'
+    }), 401
+
 # Database connection with environment variables
 print(f"🔌 Connecting to database at {os.getenv('DB_HOST', 'localhost')}:{os.getenv('DB_PORT', '3306')}")
 db = NHDatabase(
