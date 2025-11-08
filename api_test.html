@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NH Management System - API Testing</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .status {
+            padding: 20px 30px;
+            background: #f8f9fa;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .status-item {
+            display: inline-block;
+            margin-right: 30px;
+            font-size: 1.1em;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .status-online {
+            background: #28a745;
+            box-shadow: 0 0 10px #28a745;
+        }
+
+        .status-offline {
+            background: #dc3545;
+        }
+
+        .main-content {
+            padding: 30px;
+        }
+
+        .login-section {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+        }
+
+        .login-section h2 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+            font-weight: 500;
+        }
+
+        .form-group select,
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 1em;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 5px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .user-info {
+            background: #d4edda;
+            border: 2px solid #c3e6cb;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 25px;
+        }
+
+        .actions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .action-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            border: 2px solid #e9ecef;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .action-card:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .action-card h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 1.2em;
+        }
+
+        .action-card p {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .response-section {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 25px;
+        }
+
+        .response-section h3 {
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        pre {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 20px;
+            border-radius: 5px;
+            overflow-x: auto;
+            font-size: 0.9em;
+            line-height: 1.5;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #667eea;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🛣️ National Highways Management System</h1>
+            <p>REST API Testing Interface</p>
+        </div>
+
+        <div class="status">
+            <div class="status-item">
+                <span class="status-indicator" id="statusIndicator"></span>
+                <strong>Server Status:</strong> <span id="serverStatus">Checking...</span>
+            </div>
+            <div class="status-item">
+                <strong>API URL:</strong> http://localhost:5000
+            </div>
+        </div>
+
+        <div class="main-content">
+            <!-- Login Section -->
+            <div class="login-section" id="loginSection">
+                <h2>🔐 Login</h2>
+                <div class="form-group">
+                    <label>Quick Login:</label>
+                    <select id="quickLogin">
+                        <option value="">-- Select User --</option>
+                        <option value="central_admin">Central Administrator</option>
+                        <option value="madurai_office">Madurai Office Admin</option>
+                        <option value="chennai_office">Chennai Office Admin</option>
+                        <option value="salem_office">Salem Office Admin</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Or enter manually:</label>
+                    <input type="text" id="username" placeholder="Username">
+                </div>
+                <div class="form-group">
+                    <input type="password" id="password" placeholder="Password (default: admin123)" value="admin123">
+                </div>
+                <button class="btn btn-primary" onclick="login()">Login</button>
+            </div>
+
+            <!-- User Info (Hidden initially) -->
+            <div id="userInfo" class="user-info hidden">
+                <h3>✅ Logged in as: <span id="userName"></span></h3>
+                <p><strong>Role:</strong> <span id="userRole"></span></p>
+                <p><strong>Office:</strong> <span id="userOffice"></span></p>
+                <button class="btn btn-secondary" onclick="logout()">Logout</button>
+            </div>
+
+            <!-- Actions Grid -->
+            <div id="actionsGrid" class="actions-grid hidden">
+                <div class="action-card" onclick="getSegments()">
+                    <h3>📋 My Segments</h3>
+                    <p>View assigned NH segments</p>
+                </div>
+
+                <div class="action-card" onclick="getAllNHs()">
+                    <h3>🛣️ All NHs</h3>
+                    <p>List all National Highways</p>
+                </div>
+
+                <div class="action-card" onclick="getConfigurations()">
+                    <h3>⚙️ Configurations</h3>
+                    <p>Road configuration types</p>
+                </div>
+
+                <div class="action-card" onclick="checkValidation()">
+                    <h3>✅ Validation</h3>
+                    <p>Check for data issues</p>
+                </div>
+
+                <div class="action-card" onclick="getNHReport()">
+                    <h3>📊 NH44 Report</h3>
+                    <p>Configuration summary</p>
+                </div>
+
+                <div class="action-card" onclick="getDivisionReport()">
+                    <h3>📊 Division Report</h3>
+                    <p>Madurai workload summary</p>
+                </div>
+            </div>
+
+            <!-- Response Section -->
+            <div id="responseSection" class="response-section hidden">
+                <h3>📤 API Response</h3>
+                <pre id="responseData"></pre>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let authToken = null;
+        const API_URL = 'http://localhost:5000';
+
+        // Check server status on load
+        window.onload = async function() {
+            try {
+                const response = await fetch(`${API_URL}/api/health`);
+                if (response.ok) {
+                    document.getElementById('statusIndicator').className = 'status-indicator status-online';
+                    document.getElementById('serverStatus').textContent = 'Online';
+                } else {
+                    document.getElementById('statusIndicator').className = 'status-indicator status-offline';
+                    document.getElementById('serverStatus').textContent = 'Offline';
+                }
+            } catch (error) {
+                document.getElementById('statusIndicator').className = 'status-indicator status-offline';
+                document.getElementById('serverStatus').textContent = 'Cannot Connect';
+            }
+
+            // Quick login selector
+            document.getElementById('quickLogin').addEventListener('change', function() {
+                if (this.value) {
+                    document.getElementById('username').value = this.value;
+                }
+            });
+        };
+
+        async function login() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            if (!username || !password) {
+                alert('Please enter username and password');
+                return;
+            }
+
+            showResponse('Logging in...', true);
+
+            try {
+                const response = await fetch(`${API_URL}/api/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+
+                const data = await response.json();
+                showResponse(JSON.stringify(data, null, 2));
+
+                if (data.success) {
+                    authToken = data.data.token;
+                    document.getElementById('userName').textContent = data.data.user.full_name;
+                    document.getElementById('userRole').textContent = data.data.user.role;
+                    document.getElementById('userOffice').textContent = data.data.user.office_name || 'Central Authority';
+
+                    document.getElementById('loginSection').classList.add('hidden');
+                    document.getElementById('userInfo').classList.remove('hidden');
+                    document.getElementById('actionsGrid').classList.remove('hidden');
+                }
+            } catch (error) {
+                showResponse(`Error: ${error.message}`);
+            }
+        }
+
+        function logout() {
+            authToken = null;
+            document.getElementById('loginSection').classList.remove('hidden');
+            document.getElementById('userInfo').classList.add('hidden');
+            document.getElementById('actionsGrid').classList.add('hidden');
+            document.getElementById('responseSection').classList.add('hidden');
+            document.getElementById('username').value = '';
+            document.getElementById('password').value = 'admin123';
+            document.getElementById('quickLogin').value = '';
+        }
+
+        async function apiCall(endpoint, method = 'GET', body = null) {
+            showResponse('Loading...', true);
+
+            try {
+                const options = {
+                    method,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                };
+
+                if (body) {
+                    options.body = JSON.stringify(body);
+                }
+
+                const response = await fetch(`${API_URL}${endpoint}`, options);
+                const data = await response.json();
+                showResponse(JSON.stringify(data, null, 2));
+            } catch (error) {
+                showResponse(`Error: ${error.message}`);
+            }
+        }
+
+        function getSegments() {
+            apiCall('/api/segments');
+        }
+
+        function getAllNHs() {
+            apiCall('/api/nh');
+        }
+
+        function getConfigurations() {
+            apiCall('/api/configurations');
+        }
+
+        async function checkValidation() {
+            showResponse('Running validation checks...', true);
+            
+            try {
+                const checks = await Promise.all([
+                    fetch(`${API_URL}/api/validation/overlapping-segments`, {
+                        headers: { 'Authorization': `Bearer ${authToken}` }
+                    }).then(r => r.json()),
+                    fetch(`${API_URL}/api/validation/overlapping-configurations`, {
+                        headers: { 'Authorization': `Bearer ${authToken}` }
+                    }).then(r => r.json()),
+                    fetch(`${API_URL}/api/validation/out-of-bounds`, {
+                        headers: { 'Authorization': `Bearer ${authToken}` }
+                    }).then(r => r.json())
+                ]);
+
+                const result = {
+                    overlapping_segments: checks[0],
+                    overlapping_configurations: checks[1],
+                    out_of_bounds: checks[2]
+                };
+
+                showResponse(JSON.stringify(result, null, 2));
+            } catch (error) {
+                showResponse(`Error: ${error.message}`);
+            }
+        }
+
+        function getNHReport() {
+            apiCall('/api/reports/nh-summary?nh_number=NH44');
+        }
+
+        function getDivisionReport() {
+            apiCall('/api/reports/division-summary?division_name=Madurai');
+        }
+
+        function showResponse(text, isLoading = false) {
+            const section = document.getElementById('responseSection');
+            const data = document.getElementById('responseData');
+            
+            section.classList.remove('hidden');
+            
+            if (isLoading) {
+                data.innerHTML = '<div class="loading">⏳ ' + text + '</div>';
+                data.style.background = '#f8f9fa';
+                data.style.color = '#667eea';
+            } else {
+                data.textContent = text;
+                data.style.background = '#2d2d2d';
+                data.style.color = '#f8f8f2';
+            }
+            
+            section.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - NH Management System</title>
+    <link rel="stylesheet" href="static/css/style.css">
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-card">
+            <div class="login-header">
+                <div class="login-logo">🛣️</div>
+                <h1 class="login-title">NH Management System</h1>
+                <p class="login-subtitle">National Highways Division Management</p>
+            </div>
+
+            <div id="alertContainer"></div>
+
+            <form id="loginForm" onsubmit="handleLogin(event)">
+                <div class="form-group">
+                    <label class="form-label">Username</label>
+                    <input 
+                        type="text" 
+                        id="username" 
+                        class="form-control" 
+                        placeholder="Enter your username"
+                        required
+                        autofocus
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Password</label>
+                    <input 
+                        type="password" 
+                        id="password" 
+                        class="form-control" 
+                        placeholder="Enter your password"
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Quick Login (Optional)</label>
+                    <select class="form-control" id="quickLogin" onchange="fillCredentials()">
+                        <option value="">-- Select a user --</option>
+                        <option value="central_admin">Central Administrator</option>
+                        <option value="madurai_office">Madurai Office Admin</option>
+                        <option value="chennai_office">Chennai Office Admin</option>
+                        <option value="salem_office">Salem Office Admin</option>
+                    </select>
+                    <small style="color: var(--secondary-color); display: block; margin-top: 0.5rem;">
+                        Default password: admin123
+                    </small>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-block" id="loginBtn">
+                    <span id="loginBtnText">Login</span>
+                    <span id="loginBtnLoading" class="hidden">
+                        <span class="loading"></span> Logging in...
+                    </span>
+                </button>
+            </form>
+
+            <div style="margin-top: 2rem; padding-top: 2rem; border-top: 1px solid var(--border-color); text-align: center;">
+                <p style="color: var(--secondary-color); font-size: 0.875rem;">
+                    © 2025 National Highways Management System
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script src="static/js/app.js"></script>
+    <script>
+        // Check if already logged in
+        if (app.isAuthenticated()) {
+            window.location.href = 'dashboard.html';
+        }
+
+        function fillCredentials() {
+            const select = document.getElementById('quickLogin');
+            const username = document.getElementById('username');
+            const password = document.getElementById('password');
+            
+            if (select.value) {
+                username.value = select.value;
+                password.value = 'admin123';
+            }
+        }
+
+        async function handleLogin(event) {
+            event.preventDefault();
+            
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const loginBtn = document.getElementById('loginBtn');
+            const loginBtnText = document.getElementById('loginBtnText');
+            const loginBtnLoading = document.getElementById('loginBtnLoading');
+            
+            // Show loading state
+            loginBtn.disabled = true;
+            loginBtnText.classList.add('hidden');
+            loginBtnLoading.classList.remove('hidden');
+            
+            try {
+                const result = await app.login(username, password);
+                
+                if (result.success) {
+                    app.showAlert('Login successful! Redirecting...', 'success');
+                    setTimeout(() => {
+                        window.location.href = 'dashboard.html';
+                    }, 1000);
+                } else {
+                    app.showAlert(result.message || 'Invalid username or password', 'error');
+                    loginBtn.disabled = false;
+                    loginBtnText.classList.remove('hidden');
+                    loginBtnLoading.classList.add('hidden');
+                }
+            } catch (error) {
+                app.showAlert('Connection error. Please check if the server is running.', 'error');
+                loginBtn.disabled = false;
+                loginBtnText.classList.remove('hidden');
+                loginBtnLoading.classList.add('hidden');
+            }
+        }
+
+        // Allow Enter key to submit
+        document.getElementById('password').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                handleLogin(e);
+            }
+        });
+    </script>
+</body>
+</html>

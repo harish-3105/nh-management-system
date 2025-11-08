@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Validation - NH Management System</title>
+    <link rel="stylesheet" href="static/css/style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-container">
+            <a href="dashboard.html" class="navbar-brand">
+                <span class="navbar-brand-icon">🛣️</span>
+                <span>NH Management</span>
+            </a>
+            
+            <ul class="navbar-menu">
+                <li class="navbar-item"><a href="dashboard.html">Dashboard</a></li>
+                <li class="navbar-item"><a href="segments.html">Segments</a></li>
+                <li class="navbar-item"><a href="maps.html">Maps</a></li>
+                <li class="navbar-item"><a href="reports.html">Reports</a></li>
+                <li class="navbar-item"><a href="validation.html" style="color: var(--primary-color);">Validation</a></li>
+            </ul>
+
+            <div class="navbar-user">
+                <div class="user-info">
+                    <span class="user-name" id="userName"></span>
+                    <span class="user-role" id="userRole"></span>
+                </div>
+                <div class="user-avatar" id="userAvatar"></div>
+                <button class="btn btn-secondary btn-sm" onclick="app.logout()">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div id="alertContainer"></div>
+
+        <div class="dashboard-header flex-between">
+            <div>
+                <h1 class="dashboard-title">Data Validation</h1>
+                <p class="dashboard-subtitle">Check for data integrity issues</p>
+            </div>
+            <button class="btn btn-primary" onclick="runAllValidations()">
+                <span>🔄 Run All Checks</span>
+            </button>
+        </div>
+
+        <!-- Validation Summary -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-header">
+                    <div>
+                        <div class="stat-value" id="totalIssues">-</div>
+                        <div class="stat-label">Total Issues</div>
+                    </div>
+                    <div class="stat-icon warning">⚠️</div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-header">
+                    <div>
+                        <div class="stat-value" id="overlappingSegments">-</div>
+                        <div class="stat-label">Overlapping Segments</div>
+                    </div>
+                    <div class="stat-icon danger">❌</div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-header">
+                    <div>
+                        <div class="stat-value" id="overlappingConfigs">-</div>
+                        <div class="stat-label">Overlapping Configurations</div>
+                    </div>
+                    <div class="stat-icon danger">❌</div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-header">
+                    <div>
+                        <div class="stat-value" id="outOfBounds">-</div>
+                        <div class="stat-label">Out of Bounds</div>
+                    </div>
+                    <div class="stat-icon danger">❌</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Overlapping Segments -->
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">Overlapping Segments</h2>
+            </div>
+            <div class="card-body">
+                <div id="overlappingSegmentsResult">
+                    <p class="text-center" style="color: var(--secondary-color); padding: 2rem;">
+                        Click "Run All Checks" to validate data
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Overlapping Configurations -->
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">Overlapping Configurations</h2>
+            </div>
+            <div class="card-body">
+                <div id="overlappingConfigsResult">
+                    <p class="text-center" style="color: var(--secondary-color); padding: 2rem;">
+                        Click "Run All Checks" to validate data
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Out of Bounds Details -->
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">Out of Bounds Details</h2>
+            </div>
+            <div class="card-body">
+                <div id="outOfBoundsResult">
+                    <p class="text-center" style="color: var(--secondary-color); padding: 2rem;">
+                        Click "Run All Checks" to validate data
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="static/js/app.js"></script>
+    <script>
+        if (!app.isAuthenticated()) window.location.href = '/';
+        
+        document.getElementById('userName').textContent = app.user.full_name;
+        document.getElementById('userRole').textContent = app.user.role === 'central' ? 'Central Authority' : app.user.office_name;
+        document.getElementById('userAvatar').textContent = app.getUserInitials();
+
+        async function runAllValidations() {
+            app.showLoading();
+            try {
+                const results = await app.runValidation();
+                
+                // Update summary
+                const totalIssues = results.overlappingSegments.length + 
+                                  results.overlappingConfigs.length + 
+                                  results.outOfBounds.length;
+                
+                document.getElementById('totalIssues').textContent = totalIssues;
+                document.getElementById('overlappingSegments').textContent = results.overlappingSegments.length;
+                document.getElementById('overlappingConfigs').textContent = results.overlappingConfigs.length;
+                document.getElementById('outOfBounds').textContent = results.outOfBounds.length;
+                
+                // Display results
+                displayOverlappingSegments(results.overlappingSegments);
+                displayOverlappingConfigs(results.overlappingConfigs);
+                displayOutOfBounds(results.outOfBounds);
+                
+                app.hideLoading();
+                
+                if (totalIssues === 0) {
+                    app.showAlert('✓ All validation checks passed! No issues found.', 'success');
+                } else {
+                    app.showAlert(`⚠️ Found ${totalIssues} issue(s) that need attention.`, 'error');
+                }
+            } catch (error) {
+                app.hideLoading();
+                app.showAlert('Error running validation: ' + error.message, 'error');
+            }
+        }
+
+        function displayOverlappingSegments(data) {
+            const container = document.getElementById('overlappingSegmentsResult');
+            
+            if (data.length === 0) {
+                container.innerHTML = `
+                    <div class="alert alert-success">
+                        <span>✓</span>
+                        <span>No overlapping segments found. All segments have valid boundaries.</span>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = `
+                <div class="alert alert-error">
+                    <span>⚠️</span>
+                    <span>Found ${data.length} overlapping segment(s)</span>
+                </div>
+                <div class="table-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>NH Number</th>
+                                <th>Segment 1</th>
+                                <th>Segment 2</th>
+                                <th>Overlap Range</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${data.map(item => `
+                                <tr>
+                                    <td><strong>${item.nh_number}</strong></td>
+                                    <td>${item.segment1_range}</td>
+                                    <td>${item.segment2_range}</td>
+                                    <td><span class="badge badge-danger">${item.overlap_start} - ${item.overlap_end}</span></td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        }
+
+        function displayOverlappingConfigs(data) {
+            const container = document.getElementById('overlappingConfigsResult');
+            
+            if (data.length === 0) {
+                container.innerHTML = `
+                    <div class="alert alert-success">
+                        <span>✓</span>
+                        <span>No overlapping configurations found. All road details are properly defined.</span>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = `
+                <div class="alert alert-error">
+                    <span>⚠️</span>
+                    <span>Found ${data.length} overlapping configuration(s)</span>
+                </div>
+                <div class="table-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Segment</th>
+                                <th>Config 1</th>
+                                <th>Config 2</th>
+                                <th>Overlap Range</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${data.map(item => `
+                                <tr>
+                                    <td><strong>${item.segment_description}</strong></td>
+                                    <td>${item.config1_name}: ${item.detail1_range}</td>
+                                    <td>${item.config2_name}: ${item.detail2_range}</td>
+                                    <td><span class="badge badge-danger">${item.overlap_start} - ${item.overlap_end}</span></td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        }
+
+        function displayOutOfBounds(data) {
+            const container = document.getElementById('outOfBoundsResult');
+            
+            if (data.length === 0) {
+                container.innerHTML = `
+                    <div class="alert alert-success">
+                        <span>✓</span>
+                        <span>No out-of-bounds details found. All configurations are within segment boundaries.</span>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = `
+                <div class="alert alert-error">
+                    <span>⚠️</span>
+                    <span>Found ${data.length} out-of-bounds detail(s)</span>
+                </div>
+                <div class="table-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Segment</th>
+                                <th>Configuration</th>
+                                <th>Detail Range</th>
+                                <th>Valid Range</th>
+                                <th>Issue</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${data.map(item => `
+                                <tr>
+                                    <td><strong>${item.segment_description}</strong></td>
+                                    <td><span class="badge badge-primary">${item.config_name}</span></td>
+                                    <td>${item.detail_start} - ${item.detail_end}</td>
+                                    <td>${item.segment_start} - ${item.segment_end}</td>
+                                    <td><span class="badge badge-danger">Out of Bounds</span></td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        }
+
+        // Auto-run validation on page load
+        runAllValidations();
+    </script>
+</body>
+</html>

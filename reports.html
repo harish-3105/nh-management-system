@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reports - NH Management System</title>
+    <link rel="stylesheet" href="static/css/style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-container">
+            <a href="dashboard.html" class="navbar-brand">
+                <span class="navbar-brand-icon">🛣️</span>
+                <span>NH Management</span>
+            </a>
+            
+            <ul class="navbar-menu">
+                <li class="navbar-item"><a href="dashboard.html">Dashboard</a></li>
+                <li class="navbar-item"><a href="segments.html">Segments</a></li>
+                <li class="navbar-item"><a href="maps.html">Maps</a></li>
+                <li class="navbar-item"><a href="reports.html" style="color: var(--primary-color);">Reports</a></li>
+                <li class="navbar-item"><a href="validation.html">Validation</a></li>
+            </ul>
+
+            <div class="navbar-user">
+                <div class="user-info">
+                    <span class="user-name" id="userName"></span>
+                    <span class="user-role" id="userRole"></span>
+                </div>
+                <div class="user-avatar" id="userAvatar"></div>
+                <button class="btn btn-secondary btn-sm" onclick="app.logout()">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div id="alertContainer"></div>
+
+        <div class="dashboard-header">
+            <h1 class="dashboard-title">Reports</h1>
+            <p class="dashboard-subtitle">Generate configuration and workload reports</p>
+        </div>
+
+        <!-- NH Configuration Report -->
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">NH Configuration Summary</h2>
+            </div>
+            <div class="card-body">
+                <div class="form-group">
+                    <label class="form-label">Select National Highway</label>
+                    <div class="flex gap-2">
+                        <select class="form-control" id="nhSelect" style="flex: 1;">
+                            <option value="">Loading NHs...</option>
+                        </select>
+                        <button class="btn btn-primary" onclick="generateNHReport()">Generate Report</button>
+                    </div>
+                </div>
+                
+                <div id="nhReportResult" class="hidden" style="margin-top: 1.5rem;">
+                    <h3 style="margin-bottom: 1rem;">Report Results</h3>
+                    <div class="table-container">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Configuration Type</th>
+                                    <th>Total Length (km)</th>
+                                    <th>Percentage</th>
+                                </tr>
+                            </thead>
+                            <tbody id="nhReportBody"></tbody>
+                            <tfoot>
+                                <tr style="font-weight: 600; background: var(--light);">
+                                    <td>TOTAL</td>
+                                    <td id="nhTotalLength">-</td>
+                                    <td>100%</td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Division Workload Report -->
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">Division Workload Summary</h2>
+            </div>
+            <div class="card-body">
+                <div class="form-group">
+                    <label class="form-label">Select Division</label>
+                    <div class="flex gap-2">
+                        <select class="form-control" id="divisionSelect" style="flex: 1;">
+                            <option value="Madurai">Madurai</option>
+                            <option value="Chennai">Chennai</option>
+                            <option value="Salem">Salem</option>
+                        </select>
+                        <button class="btn btn-primary" onclick="generateDivisionReport()">Generate Report</button>
+                    </div>
+                </div>
+                
+                <div id="divisionReportResult" class="hidden" style="margin-top: 1.5rem;">
+                    <h3 style="margin-bottom: 1rem;">Report Results</h3>
+                    <div class="table-container">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Office Name</th>
+                                    <th>NH Count</th>
+                                    <th>Total Segments</th>
+                                    <th>Total Length (km)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="divisionReportBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Division Wise Detailed Report -->
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">Division Wise Detailed Report</h2>
+            </div>
+            <div class="card-body">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                    <div class="form-group">
+                        <label class="form-label">Select National Highway</label>
+                        <select class="form-control" id="divisionNhSelect">
+                            <option value="">Loading NHs...</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Filter by Configuration (Optional)</label>
+                        <select class="form-control" id="divisionConfigFilter">
+                            <option value="">All Configurations</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="flex gap-2">
+                    <button class="btn btn-primary" onclick="generateDivisionWiseReport()">Generate Division Report</button>
+                    <button class="btn btn-success" onclick="exportDivisionReport()" id="exportDivisionBtn" style="display: none;">
+                        📥 Export to Excel
+                    </button>
+                </div>
+                
+                <div id="divisionWiseReportResult" class="hidden" style="margin-top: 1.5rem;">
+                    <div class="flex-between" style="margin-bottom: 1rem;">
+                        <h3>Division Wise Report - <span id="selectedDivisionNH"></span></h3>
+                        <div>
+                            <span class="badge badge-primary" id="totalDivisionSegments">0 Segments</span>
+                            <span class="badge badge-success" id="totalDivisionLength">0 km</span>
+                        </div>
+                    </div>
+                    <div class="table-container">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Division</th>
+                                    <th>Office</th>
+                                    <th>NH</th>
+                                    <th>Segment</th>
+                                    <th>Seg. Start</th>
+                                    <th>Seg. End</th>
+                                    <th>Seg. Length</th>
+                                    <th>Configuration</th>
+                                    <th>Config Start</th>
+                                    <th>Config End</th>
+                                    <th>Config Length</th>
+                                    <th>Remarks</th>
+                                </tr>
+                            </thead>
+                            <tbody id="divisionWiseReportBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Detailed Configuration Report -->
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">Detailed Configuration Chainage Report</h2>
+            </div>
+            <div class="card-body">
+                <div class="form-group">
+                    <label class="form-label">Select Configuration Type</label>
+                    <div class="flex gap-2">
+                        <select class="form-control" id="configSelect" style="flex: 1;">
+                            <option value="">Loading configurations...</option>
+                        </select>
+                        <button class="btn btn-primary" onclick="generateDetailedConfigReport()">Generate Detailed Report</button>
+                        <button class="btn btn-success" onclick="exportConfigReport()" id="exportConfigBtn" style="display: none;">
+                            📥 Export to Excel
+                        </button>
+                    </div>
+                </div>
+                
+                <div id="detailedConfigReportResult" class="hidden" style="margin-top: 1.5rem;">
+                    <div class="flex-between" style="margin-bottom: 1rem;">
+                        <h3>Chainage Details - <span id="selectedConfigName"></span></h3>
+                        <div>
+                            <span class="badge badge-primary" id="totalSectionsCount">0 Sections</span>
+                            <span class="badge badge-success" id="totalConfigLength">0 km</span>
+                        </div>
+                    </div>
+                    <div class="table-container">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>NH Number</th>
+                                    <th>Segment Name</th>
+                                    <th>Start Chainage (km)</th>
+                                    <th>End Chainage (km)</th>
+                                    <th>Length (km)</th>
+                                    <th>Remarks</th>
+                                    <th>Division</th>
+                                </tr>
+                            </thead>
+                            <tbody id="detailedConfigReportBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Configuration Statistics -->
+        <div class="card">
+            <div class="card-header flex-between">
+                <h2 class="card-title">Configuration Statistics</h2>
+                <button class="btn btn-primary btn-sm" onclick="loadConfigStats()">Refresh</button>
+            </div>
+            <div class="card-body">
+                <div class="stats-grid" id="configStatsGrid">
+                    <div class="stat-card">
+                        <div class="stat-icon primary" style="margin-bottom: 1rem;">📊</div>
+                        <div class="stat-value">-</div>
+                        <div class="stat-label">Loading statistics...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="static/js/app.js"></script>
+    <script>
+        if (!app.isAuthenticated()) window.location.href = '/';
+        
+        document.getElementById('userName').textContent = app.user.full_name;
+        document.getElementById('userRole').textContent = app.user.role === 'central' ? 'Central Authority' : app.user.office_name;
+        document.getElementById('userAvatar').textContent = app.getUserInitials();
+
+        async function loadNHs() {
+            try {
+                console.log('Loading NHs...');
+                const result = await app.getAllNHs();
+                console.log('NHs loaded:', result);
+                const nhSelect = document.getElementById('nhSelect');
+                const divisionNhSelect = document.getElementById('divisionNhSelect');
+                
+                const nhOptions = '<option value="">-- Select NH --</option>' +
+                    (result.data || []).map(nh => `<option value="${nh.nh_number}">${nh.nh_number} - ${nh.nh_name}</option>`).join('');
+                
+                nhSelect.innerHTML = nhOptions;
+                divisionNhSelect.innerHTML = '<option value="ALL">All NHs</option>' + nhOptions;
+                console.log('NH dropdowns populated');
+            } catch (error) {
+                console.error('Error loading NHs:', error);
+                app.showAlert('Error loading NHs: ' + error.message, 'error');
+            }
+        }
+
+        async function loadConfigurations() {
+            try {
+                console.log('Loading configurations...');
+                const result = await app.getConfigurations();
+                console.log('Configurations loaded:', result);
+                const configSelect = document.getElementById('configSelect');
+                const divisionConfigFilter = document.getElementById('divisionConfigFilter');
+                
+                const configOptions = (result.data || []).map(config => 
+                    `<option value="${config.config_id}">${config.config_name}</option>`
+                ).join('');
+                
+                configSelect.innerHTML = '<option value="">-- Select Configuration --</option>' + configOptions;
+                divisionConfigFilter.innerHTML = '<option value="">All Configurations</option>' + configOptions;
+                console.log('Configuration dropdowns populated');
+            } catch (error) {
+                console.error('Error loading configurations:', error);
+                app.showAlert('Error loading configurations: ' + error.message, 'error');
+            }
+        }
+
+        let detailedReportData = [];
+        let divisionReportData = [];
+
+        async function generateDivisionWiseReport() {
+            const nhNumber = document.getElementById('divisionNhSelect').value;
+            const configId = document.getElementById('divisionConfigFilter').value;
+            
+            if (!nhNumber) {
+                app.showAlert('Please select a National Highway', 'error');
+                return;
+            }
+
+            app.showLoading();
+            try {
+                const result = await app.getDivisionWiseReport(nhNumber, configId);
+                divisionReportData = result.data || [];
+                
+                if (divisionReportData.length === 0) {
+                    app.showAlert('No data found for selected filters', 'info');
+                    app.hideLoading();
+                    return;
+                }
+
+                const tbody = document.getElementById('divisionWiseReportBody');
+                const uniqueSegments = new Set(divisionReportData.map(item => item.segment_name));
+                const totalConfigLength = divisionReportData.reduce((sum, item) => 
+                    sum + (item.config_length ? parseFloat(item.config_length) : 0), 0
+                );
+                
+                tbody.innerHTML = divisionReportData.map(item => `
+                    <tr>
+                        <td>${item.division_name}</td>
+                        <td>${item.office_name}</td>
+                        <td><strong>${item.nh_number}</strong></td>
+                        <td>${item.segment_name}</td>
+                        <td>${parseFloat(item.segment_start).toFixed(3)}</td>
+                        <td>${parseFloat(item.segment_end).toFixed(3)}</td>
+                        <td><strong>${parseFloat(item.segment_length).toFixed(3)}</strong></td>
+                        <td>${item.config_name ? `<span class="badge badge-primary">${item.config_name}</span>` : '-'}</td>
+                        <td>${item.config_start ? parseFloat(item.config_start).toFixed(3) : '-'}</td>
+                        <td>${item.config_end ? parseFloat(item.config_end).toFixed(3) : '-'}</td>
+                        <td>${item.config_length ? `<strong>${parseFloat(item.config_length).toFixed(3)}</strong>` : '-'}</td>
+                        <td>${item.remarks || '-'}</td>
+                    </tr>
+                `).join('');
+                
+                const nhText = nhNumber === 'ALL' ? 'All National Highways' : nhNumber;
+                const configText = configId ? document.getElementById('divisionConfigFilter').selectedOptions[0].text : 'All Configurations';
+                document.getElementById('selectedDivisionNH').textContent = `${nhText} (${configText})`;
+                document.getElementById('totalDivisionSegments').textContent = uniqueSegments.size + ' Segments';
+                document.getElementById('totalDivisionLength').textContent = totalConfigLength.toFixed(3) + ' km';
+                document.getElementById('divisionWiseReportResult').classList.remove('hidden');
+                document.getElementById('exportDivisionBtn').style.display = 'inline-block';
+                
+                app.hideLoading();
+                app.showAlert('Division wise report generated successfully', 'success');
+            } catch (error) {
+                app.hideLoading();
+                app.showAlert('Error generating division report: ' + error.message, 'error');
+            }
+        }
+
+        function exportDivisionReport() {
+            if (divisionReportData.length === 0) {
+                app.showAlert('No data to export', 'error');
+                return;
+            }
+
+            const nhNumber = document.getElementById('divisionNhSelect').value;
+            const nhText = nhNumber === 'ALL' ? 'All_NHs' : nhNumber;
+            const totalConfigLength = divisionReportData.reduce((sum, item) => 
+                sum + (item.config_length ? parseFloat(item.config_length) : 0), 0
+            );
+            
+            // Create CSV content
+            let csv = 'Division,Office,NH,Segment,Seg Start (km),Seg End (km),Seg Length (km),Configuration,Config Start (km),Config End (km),Config Length (km),Remarks\n';
+            divisionReportData.forEach(item => {
+                csv += `"${item.division_name}","${item.office_name}","${item.nh_number}","${item.segment_name}",`;
+                csv += `${item.segment_start},${item.segment_end},${item.segment_length},`;
+                csv += `"${item.config_name || ''}",${item.config_start || ''},${item.config_end || ''},${item.config_length || ''},"${item.remarks || ''}"\n`;
+            });
+            csv += `\nTotal Configuration Length (km),${totalConfigLength.toFixed(3)}\n`;
+            
+            // Create download link
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', `Division_Wise_Report_${nhText}_${new Date().toISOString().split('T')[0]}.csv`);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            app.showAlert('Division report exported successfully', 'success');
+        }
+
+        async function generateDetailedConfigReport() {
+            const configId = document.getElementById('configSelect').value;
+            const configName = document.getElementById('configSelect').selectedOptions[0].text;
+            
+            if (!configId) {
+                app.showAlert('Please select a configuration type', 'error');
+                return;
+            }
+
+            app.showLoading();
+            try {
+                const result = await app.getDetailedConfigReport(configId);
+                detailedReportData = result.data || [];
+                
+                if (detailedReportData.length === 0) {
+                    app.showAlert('No data found for ' + configName, 'info');
+                    app.hideLoading();
+                    return;
+                }
+
+                const tbody = document.getElementById('detailedConfigReportBody');
+                const totalLength = detailedReportData.reduce((sum, item) => sum + parseFloat(item.length_km), 0);
+                
+                tbody.innerHTML = detailedReportData.map(item => `
+                    <tr>
+                        <td><strong>${item.nh_number}</strong></td>
+                        <td>${item.segment_name}</td>
+                        <td>${parseFloat(item.start_chainage).toFixed(3)}</td>
+                        <td>${parseFloat(item.end_chainage).toFixed(3)}</td>
+                        <td><strong>${parseFloat(item.length_km).toFixed(3)}</strong></td>
+                        <td>${item.remarks || '-'}</td>
+                        <td>${item.division_name}</td>
+                    </tr>
+                `).join('');
+                
+                document.getElementById('selectedConfigName').textContent = configName;
+                document.getElementById('totalSectionsCount').textContent = detailedReportData.length + ' Sections';
+                document.getElementById('totalConfigLength').textContent = totalLength.toFixed(3) + ' km';
+                document.getElementById('detailedConfigReportResult').classList.remove('hidden');
+                document.getElementById('exportConfigBtn').style.display = 'inline-block';
+                
+                app.hideLoading();
+                app.showAlert('Detailed report generated successfully', 'success');
+            } catch (error) {
+                app.hideLoading();
+                app.showAlert('Error generating detailed report: ' + error.message, 'error');
+            }
+        }
+
+        function exportConfigReport() {
+            if (detailedReportData.length === 0) {
+                app.showAlert('No data to export', 'error');
+                return;
+            }
+
+            const configName = document.getElementById('selectedConfigName').textContent;
+            const totalLength = detailedReportData.reduce((sum, item) => sum + parseFloat(item.length_km), 0);
+            
+            // Create CSV content
+            let csv = 'NH Number,Segment Name,Start Chainage (km),End Chainage (km),Length (km),Remarks,Division\n';
+            detailedReportData.forEach(item => {
+                csv += `"${item.nh_number}","${item.segment_name}",${item.start_chainage},${item.end_chainage},${item.length_km},"${item.remarks || ''}","${item.division_name}"\n`;
+            });
+            csv += `\nTotal Sections,${detailedReportData.length}\n`;
+            csv += `Total Length (km),${totalLength.toFixed(3)}\n`;
+            
+            // Create download link
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', `${configName.replace(/[^a-z0-9]/gi, '_')}_Chainage_Report_${new Date().toISOString().split('T')[0]}.csv`);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            app.showAlert('Report exported successfully', 'success');
+        }
+
+        async function loadNHs() {
+            try {
+                const result = await app.getAllNHs();
+                const select = document.getElementById('nhSelect');
+                select.innerHTML = '<option value="">-- Select NH --</option>' +
+                    (result.data || []).map(nh => `<option value="${nh.nh_number}">${nh.nh_number} - ${nh.nh_name}</option>`).join('');
+            } catch (error) {
+                app.showAlert('Error loading NHs: ' + error.message, 'error');
+            }
+        }
+
+        async function generateNHReport() {
+            const nhNumber = document.getElementById('nhSelect').value;
+            if (!nhNumber) {
+                app.showAlert('Please select a National Highway', 'error');
+                return;
+            }
+
+            app.showLoading();
+            try {
+                const result = await app.getNHReport(nhNumber);
+                const data = result.data || [];
+                
+                if (data.length === 0) {
+                    app.showAlert('No configuration data found for ' + nhNumber, 'info');
+                    app.hideLoading();
+                    return;
+                }
+
+                const tbody = document.getElementById('nhReportBody');
+                const totalLength = data.reduce((sum, item) => sum + parseFloat(item.total_length), 0);
+                
+                tbody.innerHTML = data.map(item => {
+                    const percentage = ((parseFloat(item.total_length) / totalLength) * 100).toFixed(2);
+                    return `
+                        <tr>
+                            <td><span class="badge badge-primary">${item.config_name}</span></td>
+                            <td><strong>${item.total_length}</strong></td>
+                            <td>${percentage}%</td>
+                        </tr>
+                    `;
+                }).join('');
+                
+                document.getElementById('nhTotalLength').textContent = totalLength.toFixed(3);
+                document.getElementById('nhReportResult').classList.remove('hidden');
+                
+                app.hideLoading();
+                app.showAlert('Report generated successfully', 'success');
+            } catch (error) {
+                app.hideLoading();
+                app.showAlert('Error generating report: ' + error.message, 'error');
+            }
+        }
+
+        async function generateDivisionReport() {
+            const division = document.getElementById('divisionSelect').value;
+            
+            app.showLoading();
+            try {
+                const result = await app.getDivisionReport(division);
+                const data = result.data || [];
+                
+                if (data.length === 0) {
+                    app.showAlert('No data found for ' + division + ' division', 'info');
+                    app.hideLoading();
+                    return;
+                }
+
+                const tbody = document.getElementById('divisionReportBody');
+                tbody.innerHTML = data.map(item => `
+                    <tr>
+                        <td><strong>${item.office_name}</strong></td>
+                        <td>${item.nh_count}</td>
+                        <td>${item.segment_count}</td>
+                        <td><strong>${item.total_length}</strong></td>
+                    </tr>
+                `).join('');
+                
+                document.getElementById('divisionReportResult').classList.remove('hidden');
+                
+                app.hideLoading();
+                app.showAlert('Report generated successfully', 'success');
+            } catch (error) {
+                app.hideLoading();
+                app.showAlert('Error generating report: ' + error.message, 'error');
+            }
+        }
+
+        async function loadConfigStats() {
+            app.showLoading();
+            try {
+                const result = await app.getConfigStats();
+                const data = result.data || [];
+                
+                const grid = document.getElementById('configStatsGrid');
+                const colors = ['primary', 'success', 'warning', 'info', 'primary', 'success'];
+                
+                grid.innerHTML = data.map((stat, index) => `
+                    <div class="stat-card">
+                        <div class="stat-icon ${colors[index % colors.length]}" style="margin-bottom: 1rem;">🛣️</div>
+                        <div class="stat-value">${stat.total_length} km</div>
+                        <div class="stat-label">${stat.config_name}</div>
+                    </div>
+                `).join('');
+                
+                app.hideLoading();
+            } catch (error) {
+                app.hideLoading();
+                app.showAlert('Error loading statistics: ' + error.message, 'error');
+            }
+        }
+
+        loadNHs();
+        loadConfigurations();
+        loadConfigStats();
+    </script>
+</body>
+</html>

@@ -1,0 +1,73 @@
+======================================================================
+HOW TO FIX PORT FORWARDING FOR MOBILE ACCESS
+======================================================================
+
+PROBLEM: Mobile browser shows blank page when accessing http://10.46.50.27:5000
+CAUSE: Windows Firewall is blocking incoming connections on port 5000
+
+======================================================================
+SOLUTION 1: Add Firewall Rule (RECOMMENDED)
+======================================================================
+
+METHOD A - Using PowerShell (Run as Administrator):
+1. Right-click on PowerShell icon
+2. Select "Run as Administrator"
+3. Copy and paste this command:
+
+netsh advfirewall firewall add rule name="NH Management Port 5000" dir=in action=allow protocol=TCP localport=5000
+
+4. Press Enter
+5. You should see "Ok."
+
+
+METHOD B - Using Windows GUI:
+1. Press Windows key + R
+2. Type: wf.msc
+3. Press Enter (opens Windows Defender Firewall with Advanced Security)
+4. Click "Inbound Rules" in left panel
+5. Click "New Rule..." in right Actions panel
+6. Select "Port" → Click Next
+7. Select "TCP" and enter "5000" in Specific local ports → Click Next
+8. Select "Allow the connection" → Click Next
+9. Check all boxes: Domain, Private, Public → Click Next
+10. Name: "NH Management Port 5000" → Click Finish
+
+======================================================================
+SOLUTION 2: Temporarily Disable Firewall (FOR TESTING ONLY)
+======================================================================
+
+1. Press Windows key
+2. Type "Windows Security"
+3. Open Windows Security
+4. Click "Firewall & network protection"
+5. Click on your active network (usually "Private network")
+6. Turn OFF "Microsoft Defender Firewall"
+7. Try accessing from mobile
+8. REMEMBER TO TURN IT BACK ON!
+
+======================================================================
+SOLUTION 3: Check Network Settings
+======================================================================
+
+Make sure:
+1. Both PC and mobile are on SAME Wi-Fi network (not guest network)
+2. Your PC's IP is actually 10.46.50.27
+   - Run in PowerShell: ipconfig
+   - Find "IPv4 Address" under your Wi-Fi adapter
+3. Try accessing http://YOUR_ACTUAL_IP:5000 from mobile
+
+======================================================================
+HOW TO VERIFY IT'S WORKING
+======================================================================
+
+After adding firewall rule:
+1. Keep server running (python server.py)
+2. Open mobile browser
+3. Go to: http://10.46.50.27:5000
+4. You should see the login page
+5. Check server terminal - you should see requests from your mobile's IP (not 127.0.0.1)
+
+Example of successful mobile connection in server logs:
+192.168.1.50 - - [08/Nov/2025 12:45:00] "GET / HTTP/1.1" 200 -
+
+======================================================================

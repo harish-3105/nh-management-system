@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - NH Management System</title>
+    <link rel="stylesheet" href="static/css/style.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="navbar-container">
+            <a href="dashboard.html" class="navbar-brand">
+                <span class="navbar-brand-icon">🛣️</span>
+                <span>NH Management</span>
+            </a>
+            
+            <ul class="navbar-menu">
+                <li class="navbar-item"><a href="dashboard.html">Dashboard</a></li>
+                <li class="navbar-item"><a href="segments.html">Segments</a></li>
+                <li class="navbar-item"><a href="maps.html">Maps</a></li>
+                <li class="navbar-item"><a href="reports.html">Reports</a></li>
+                <li class="navbar-item"><a href="validation.html">Validation</a></li>
+            </ul>
+
+            <div class="navbar-user">
+                <div class="user-info">
+                    <span class="user-name" id="userName"></span>
+                    <span class="user-role" id="userRole"></span>
+                </div>
+                <div class="user-avatar" id="userAvatar"></div>
+                <button class="btn btn-secondary btn-sm" onclick="handleLogout()">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container">
+        <div id="alertContainer"></div>
+
+        <div class="dashboard-header">
+            <h1 class="dashboard-title">Dashboard</h1>
+            <p class="dashboard-subtitle">Overview of National Highways Management</p>
+        </div>
+
+        <!-- Statistics Cards -->
+        <div class="stats-grid" id="statsGrid">
+            <div class="stat-card">
+                <div class="stat-header">
+                    <div>
+                        <div class="stat-value" id="totalNHs">-</div>
+                        <div class="stat-label">National Highways</div>
+                    </div>
+                    <div class="stat-icon primary">🛣️</div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-header">
+                    <div>
+                        <div class="stat-value" id="totalSegments">-</div>
+                        <div class="stat-label">Segments <span id="segmentLabel">Assigned</span></div>
+                    </div>
+                    <div class="stat-icon success">📍</div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-header">
+                    <div>
+                        <div class="stat-value" id="totalLength">-</div>
+                        <div class="stat-label">Total Length (km)</div>
+                    </div>
+                    <div class="stat-icon warning">📏</div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-header">
+                    <div>
+                        <div class="stat-value" id="totalOffices">-</div>
+                        <div class="stat-label">Division Offices</div>
+                    </div>
+                    <div class="stat-icon info">🏢</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Segments -->
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">
+                    <span id="segmentsTitle">Your Assigned Segments</span>
+                </h2>
+                <a href="segments.html" class="btn btn-primary btn-sm">View All</a>
+            </div>
+            <div class="card-body">
+                <div class="table-container">
+                    <table class="table" id="segmentsTable">
+                        <thead>
+                            <tr>
+                                <th>NH Number</th>
+                                <th>Description</th>
+                                <th>Division Office</th>
+                                <th>Chainage Range</th>
+                                <th>Length (km)</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="segmentsTableBody">
+                            <tr>
+                                <td colspan="7" class="text-center">
+                                    <div class="loading-spinner" style="margin: 2rem auto;"></div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">Quick Actions</h2>
+            </div>
+            <div class="card-body">
+                <div class="stats-grid">
+                    <a href="segments.html" class="stat-card" style="text-decoration: none; cursor: pointer;">
+                        <div class="stat-icon primary" style="margin-bottom: 1rem;">📋</div>
+                        <h3 style="margin-bottom: 0.5rem; color: var(--dark);">Manage Segments</h3>
+                        <p style="color: var(--secondary-color); font-size: 0.875rem;">
+                            View and manage NH segments
+                        </p>
+                    </a>
+
+                    <a href="reports.html" class="stat-card" style="text-decoration: none; cursor: pointer;">
+                        <div class="stat-icon success" style="margin-bottom: 1rem;">📊</div>
+                        <h3 style="margin-bottom: 0.5rem; color: var(--dark);">Generate Reports</h3>
+                        <p style="color: var(--secondary-color); font-size: 0.875rem;">
+                            Create configuration and workload reports
+                        </p>
+                    </a>
+
+                    <a href="validation.html" class="stat-card" style="text-decoration: none; cursor: pointer;">
+                        <div class="stat-icon warning" style="margin-bottom: 1rem;">✓</div>
+                        <h3 style="margin-bottom: 0.5rem; color: var(--dark);">Run Validation</h3>
+                        <p style="color: var(--secondary-color); font-size: 0.875rem;">
+                            Check for data integrity issues
+                        </p>
+                    </a>
+
+                    <a href="maps.html" class="stat-card" style="text-decoration: none; color: inherit;">
+                        <div class="stat-icon" style="background-color: #10b981; margin-bottom: 1rem;">🗺️</div>
+                        <h3 style="margin-bottom: 0.5rem; color: var(--dark);">View Maps</h3>
+                        <p style="color: var(--secondary-color); font-size: 0.875rem;">
+                            Visualize NH routes on map
+                        </p>
+                    </a>
+
+                    <div class="stat-card" style="cursor: pointer;" onclick="window.location.reload()">
+                        <div class="stat-icon info" style="margin-bottom: 1rem;">🔄</div>
+                        <h3 style="margin-bottom: 0.5rem; color: var(--dark);">Refresh Data</h3>
+                        <p style="color: var(--secondary-color); font-size: 0.875rem;">
+                            Update dashboard statistics
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="static/js/app.js"></script>
+    <script>
+        // Check authentication
+        if (!app.isAuthenticated()) {
+            window.location.href = '/';
+        }
+
+        // Display user info
+        document.getElementById('userName').textContent = app.user.full_name;
+        document.getElementById('userRole').textContent = app.user.role === 'central' ? 'Central Authority' : app.user.office_name;
+        document.getElementById('userAvatar').textContent = app.getUserInitials();
+
+        // Update title for central users
+        if (app.user.role === 'central') {
+            document.getElementById('segmentLabel').textContent = 'Total';
+            document.getElementById('segmentsTitle').textContent = 'All Segments';
+        }
+
+        function handleLogout() {
+            if (confirm('Are you sure you want to logout?')) {
+                app.logout();
+            }
+        }
+
+        async function loadDashboard() {
+            try {
+                app.showLoading();
+                
+                const stats = await app.getDashboardStats();
+                
+                // Update statistics
+                document.getElementById('totalNHs').textContent = stats.totalNHs;
+                document.getElementById('totalSegments').textContent = stats.totalSegments;
+                document.getElementById('totalOffices').textContent = stats.totalOffices;
+                
+                // Calculate total length
+                const totalLength = stats.segments.reduce((sum, seg) => sum + parseFloat(seg.segment_length || 0), 0);
+                document.getElementById('totalLength').textContent = totalLength.toFixed(2);
+                
+                // Load segments table
+                loadSegmentsTable(stats.segments.slice(0, 10)); // Show first 10
+                
+                app.hideLoading();
+            } catch (error) {
+                app.hideLoading();
+                app.showAlert('Error loading dashboard: ' + error.message, 'error');
+            }
+        }
+
+        function loadSegmentsTable(segments) {
+            const tbody = document.getElementById('segmentsTableBody');
+            
+            if (segments.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="text-center">No segments found</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = segments.map(seg => `
+                <tr>
+                    <td><strong>${seg.nh_number}</strong></td>
+                    <td>${seg.segment_description}</td>
+                    <td>${seg.office_name}</td>
+                    <td>${seg.start_chainage} - ${seg.end_chainage} km</td>
+                    <td><strong>${seg.segment_length}</strong></td>
+                    <td><span class="badge badge-success">${seg.status}</span></td>
+                    <td>
+                        <a href="segments.html?id=${seg.segment_id}" class="btn btn-primary btn-sm">
+                            View Details
+                        </a>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // Load dashboard on page load
+        loadDashboard();
+    </script>
+</body>
+</html>
