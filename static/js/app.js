@@ -51,16 +51,32 @@ class NHManagementApp {
         const options = {
             method,
             headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${this.token}`
+                'Content-Type': 'application/json'
             }
         };
+
+        // Only add Authorization header if token exists
+        if (this.token) {
+            options.headers['Authorization'] = `Bearer ${this.token}`;
+        }
 
         if (body) {
             options.body = JSON.stringify(body);
         }
 
         const response = await fetch(`${this.apiUrl}${endpoint}`, options);
+        
+        // If 422 (invalid token), clear token and retry without auth
+        if (response.status === 422 && this.token) {
+            console.warn('Invalid token detected, clearing and retrying...');
+            this.token = null;
+            localStorage.removeItem('token');
+            // Retry without token
+            delete options.headers['Authorization'];
+            const retryResponse = await fetch(`${this.apiUrl}${endpoint}`, options);
+            return await retryResponse.json();
+        }
+        
         return await response.json();
     }
 

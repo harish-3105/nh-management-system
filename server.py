@@ -493,9 +493,8 @@ def delete_segment(segment_id):
 # ==============================================================================
 
 @app.route('/api/configurations', methods=['GET'])
-@jwt_required()
 def get_configurations():
-    """Get all road configuration types"""
+    """Get all road configuration types - Public endpoint"""
     try:
         configs = detail_mgr.get_configurations()
         return success_response(configs)
