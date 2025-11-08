@@ -41,6 +41,7 @@ jwt = JWTManager(app)
 # JWT error handlers
 @jwt.expired_token_loader
 def expired_token_callback(jwt_header, jwt_payload):
+    print(f"⚠️ Expired token: {jwt_payload}")
     return jsonify({
         'error': 'Token has expired',
         'message': 'Please login again'
@@ -48,6 +49,7 @@ def expired_token_callback(jwt_header, jwt_payload):
 
 @jwt.invalid_token_loader
 def invalid_token_callback(error):
+    print(f"⚠️ Invalid token error: {error}")
     return jsonify({
         'error': 'Invalid token',
         'message': 'Please login again'
@@ -55,6 +57,7 @@ def invalid_token_callback(error):
 
 @jwt.unauthorized_loader
 def missing_token_callback(error):
+    print(f"⚠️ Missing token error: {error}")
     return jsonify({
         'error': 'Authorization required',
         'message': 'Please login to access this resource'
@@ -85,6 +88,9 @@ if not db.connect():
     exit(1)
 
 print("✅ Connected to database")
+
+# Print JWT configuration for debugging
+print(f"🔐 JWT_SECRET_KEY configured: {'Yes' if os.getenv('JWT_SECRET_KEY') else 'No (using default)'}")
 
 # ==============================================================================
 # HELPER FUNCTIONS
