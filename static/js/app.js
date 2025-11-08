@@ -70,7 +70,7 @@ class NHManagementApp {
         if (response.status === 422 && this.token) {
             console.warn('Invalid token detected, clearing and retrying...');
             this.token = null;
-            localStorage.removeItem('token');
+            localStorage.removeItem('nh_token');
             // Retry without token
             delete options.headers['Authorization'];
             const retryResponse = await fetch(`${this.apiUrl}${endpoint}`, options);

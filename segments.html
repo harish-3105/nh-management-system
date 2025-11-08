@@ -687,6 +687,11 @@
         }
 
         function showAddSegmentModal() {
+            // Check if user is authenticated
+            if (!checkAuthForModification()) {
+                return;
+            }
+            
             // Clear form
             document.getElementById('segmentId').value = '';
             document.getElementById('segmentNhId').value = '';
@@ -708,6 +713,11 @@
         }
 
         async function editSegment(segmentId) {
+            // Check if user is authenticated
+            if (!checkAuthForModification()) {
+                return;
+            }
+            
             app.showLoading();
             try {
                 // Fetch segment data using app.apiCall to include JWT token
@@ -752,6 +762,11 @@
         }
 
         async function deleteSegment(segmentId, nhNumber) {
+            // Check if user is authenticated
+            if (!checkAuthForModification()) {
+                return;
+            }
+            
             if (!confirm(`Are you sure you want to delete segment for ${nhNumber}?\nThis will also delete all associated road details.`)) {
                 return;
             }
@@ -880,14 +895,20 @@
             }
         }
 
-        // Check authentication before loading page
-        if (app.isAuthenticated()) {
-            loadPage();
-        } else {
-            // Redirect to login if not authenticated
-            console.log('Not authenticated, redirecting to login...');
-            window.location.href = '/index.html';
+        // Check authentication before allowing add/edit operations
+        function checkAuthForModification() {
+            if (!app.isAuthenticated()) {
+                app.showAlert('Please log in to add or modify segments', 'error');
+                setTimeout(() => {
+                    window.location.href = '/index.html';
+                }, 2000);
+                return false;
+            }
+            return true;
         }
+
+        // Load page data (public access for viewing)
+        loadPage();
     </script>
 </body>
 </html>

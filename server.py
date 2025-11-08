@@ -275,9 +275,9 @@ def get_segments():
         return error_response(f"Error: {str(e)}", 500)
 
 @app.route('/api/segments/<int:segment_id>', methods=['GET'])
-@jwt_required()
+@jwt_required(optional=True)
 def get_segment(segment_id):
-    """Get specific segment details"""
+    """Public endpoint - Get specific segment details"""
     try:
         segment = segment_mgr.get_segment_details(segment_id)
         
@@ -502,9 +502,9 @@ def get_configurations():
         return error_response(f"Error: {str(e)}", 500)
 
 @app.route('/api/segments/<int:segment_id>/details', methods=['GET'])
-@jwt_required()
+@jwt_required(optional=True)
 def get_segment_details(segment_id):
-    """Get road details for a specific segment"""
+    """Public endpoint - Get road details for a specific segment"""
     try:
         details = detail_mgr.get_segment_details(segment_id)
         return success_response(details)
