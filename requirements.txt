@@ -12,12 +12,6 @@ flask==3.0.0
 flask-cors==4.0.0
 flask-jwt-extended==4.5.3
 
-# API documentation (optional)
-flask-swagger-ui==4.11.1
-
-# Data validation (using pre-built wheels)
-pydantic==2.5.3
-
 # Production server
 gunicorn==21.2.0
 werkzeug==3.0.1
