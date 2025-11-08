@@ -172,9 +172,8 @@ def get_current_user():
 # ==============================================================================
 
 @app.route('/api/divisions', methods=['GET'])
-@jwt_required()
 def get_divisions():
-    """Get all divisions and offices"""
+    """Get all divisions and offices - Public endpoint"""
     try:
         query = "SELECT * FROM divisions ORDER BY division_name, office_name"
         divisions = db.execute_query(query)
@@ -187,9 +186,8 @@ def get_divisions():
 # ==============================================================================
 
 @app.route('/api/nh', methods=['GET'])
-@jwt_required()
 def get_all_nhs():
-    """Get all National Highways"""
+    """Get all National Highways - Public endpoint"""
     try:
         nhs = nh_mgr.get_all_nhs()
         return success_response(nhs)
@@ -226,26 +224,37 @@ def get_nh_segments(nh_id):
 # ==============================================================================
 
 @app.route('/api/segments', methods=['GET'])
-@jwt_required()
+@jwt_required(optional=True)
 def get_segments():
-    """Get segments (filtered by user role)"""
+    """Get segments (filtered by user role if logged in, all segments if public)"""
     try:
         user_id = get_jwt_identity()
         
-        # Get user info
-        user_query = "SELECT role, division_office_id FROM users WHERE user_id = %s"
-        user_results = db.execute_query(user_query, (user_id,))
-        
-        if not user_results:
-            return error_response("User not found", 404)
-        
-        user = user_results[0]
-        
-        # If division user, filter by their office
-        if user['role'] == 'division':
-            segments = segment_mgr.get_segments_by_division(user['division_office_id'])
+        if user_id:
+            # User is logged in, filter by role
+            user_query = "SELECT role, division_office_id FROM users WHERE user_id = %s"
+            user_results = db.execute_query(user_query, (user_id,))
+            
+            if not user_results:
+                return error_response("User not found", 404)
+            
+            user = user_results[0]
+            
+            # If division user, filter by their office
+            if user['role'] == 'division':
+                segments = segment_mgr.get_segments_by_division(user['division_office_id'])
+            else:
+                # Central user sees all segments
+                query = """
+                    SELECT ns.*, nm.nh_number, nm.nh_name, d.division_name, d.office_name
+                    FROM nh_segments ns
+                    JOIN nh_master nm ON ns.nh_id = nm.nh_id
+                    JOIN divisions d ON ns.division_office_id = d.division_id
+                    ORDER BY nm.nh_number, ns.start_chainage
+                """
+                segments = db.execute_query(query)
         else:
-            # Central user sees all segments
+            # Not logged in, show all segments (public access)
             query = """
                 SELECT ns.*, nm.nh_number, nm.nh_name, d.division_name, d.office_name
                 FROM nh_segments ns
