@@ -39,12 +39,14 @@ CORS(app, resources={
 jwt = JWTManager(app)
 
 # Database connection with environment variables
+print(f"🔌 Connecting to database at {os.getenv('DB_HOST', 'localhost')}:{os.getenv('DB_PORT', '3306')}")
 db = NHDatabase(
     host=os.getenv('DB_HOST', 'localhost'),
     database=os.getenv('DB_NAME', 'nh_management'),
     user=os.getenv('DB_USER', 'root'),
     password=os.getenv('DB_PASSWORD', 'WJ28@krhps')
 )
+print(f"✅ Database connection initialized")
 
 # Initialize managers
 user_mgr = UserManager(db)
