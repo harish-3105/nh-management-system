@@ -4,8 +4,8 @@
 # Database
 mysql-connector-python==8.2.0
 
-# Password hashing
-bcrypt==4.1.1
+# Password hashing (pre-built wheel)
+bcrypt==4.1.2
 
 # Web framework (optional - for REST API)
 flask==3.0.0
@@ -15,8 +15,8 @@ flask-jwt-extended==4.5.3
 # API documentation (optional)
 flask-swagger-ui==4.11.1
 
-# Data validation
-pydantic==2.5.0
+# Data validation (using pre-built wheels)
+pydantic==2.5.3
 
 # Production server
 gunicorn==21.2.0
