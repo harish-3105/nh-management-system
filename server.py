@@ -128,8 +128,8 @@ def login():
         user = user_mgr.authenticate(username, password)
         
         if user:
-            # Create JWT token
-            access_token = create_access_token(identity=user['user_id'])
+            # Create JWT token - identity must be a string
+            access_token = create_access_token(identity=str(user['user_id']))
             
             return success_response({
                 'token': access_token,
@@ -155,7 +155,7 @@ def login():
 def get_current_user():
     """Get current user info"""
     try:
-        user_id = get_jwt_identity()
+        user_id = int(get_jwt_identity())  # Convert string identity back to int
         query = """
             SELECT u.user_id, u.username, u.full_name, u.email, u.role,
                    u.division_office_id, d.division_name, d.office_name
@@ -237,7 +237,8 @@ def get_segments():
         user_id = get_jwt_identity()
         
         if user_id:
-            # User is logged in, filter by role
+            # User is logged in, filter by role - convert string identity to int
+            user_id = int(user_id)
             user_query = "SELECT role, division_office_id FROM users WHERE user_id = %s"
             user_results = db.execute_query(user_query, (user_id,))
             
@@ -293,7 +294,7 @@ def get_segment(segment_id):
 def create_segment():
     """Create a new segment"""
     try:
-        user_id = get_jwt_identity()
+        user_id = int(get_jwt_identity())  # Convert string identity to int
         data = request.get_json()
         
         # Validate required fields
@@ -363,7 +364,7 @@ def create_segment():
 def update_segment(segment_id):
     """Update an existing segment"""
     try:
-        user_id = get_jwt_identity()
+        user_id = int(get_jwt_identity())  # Convert string identity to int
         data = request.get_json()
         
         # Check if segment exists
@@ -516,7 +517,7 @@ def get_segment_details(segment_id):
 def add_detail():
     """Add new road configuration detail"""
     try:
-        user_id = get_jwt_identity()
+        user_id = int(get_jwt_identity())  # Convert string identity to int
         data = request.get_json()
         
         print(f"DEBUG: Received data: {data}")
