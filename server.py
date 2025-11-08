@@ -44,7 +44,8 @@ db = NHDatabase(
     host=os.getenv('DB_HOST', 'localhost'),
     database=os.getenv('DB_NAME', 'nh_management'),
     user=os.getenv('DB_USER', 'root'),
-    password=os.getenv('DB_PASSWORD', 'WJ28@krhps')
+    password=os.getenv('DB_PASSWORD', 'WJ28@krhps'),
+    port=int(os.getenv('DB_PORT', '3306'))
 )
 print(f"✅ Database connection initialized")
 

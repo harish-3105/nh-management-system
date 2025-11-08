@@ -15,7 +15,7 @@ import json
 class NHDatabase:
     """Database connection and operations handler with connection pooling"""
     
-    def __init__(self, host: str, database: str, user: str, password: str):
+    def __init__(self, host: str, database: str, user: str, password: str, port: int = 3306):
         """
         Initialize database connection pool
         
@@ -24,11 +24,13 @@ class NHDatabase:
             database: Database name
             user: Database username
             password: Database password
+            port: Database port (default: 3306)
         """
         self.host = host
         self.database = database
         self.user = user
         self.password = password
+        self.port = port
         self.pool = None
         self.last_error = None  # Store last error for retrieval
         
@@ -40,6 +42,7 @@ class NHDatabase:
                 pool_size=10,
                 pool_reset_session=True,
                 host=self.host,
+                port=self.port,
                 database=self.database,
                 user=self.user,
                 password=self.password
